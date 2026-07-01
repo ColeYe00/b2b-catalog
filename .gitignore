@@ -15,6 +15,7 @@ node_modules
 .env.*
 !.env.example
 !.env.crawler.example
+!.env.mysql.example
 
 # Logs
 *.log

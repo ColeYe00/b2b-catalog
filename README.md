@@ -35,7 +35,7 @@ Copy `.env.mysql.example` to `.env.mysql` and add the server-only MySQL connecti
 ```env
 MYSQL_HOST=127.0.0.1
 MYSQL_PORT=3306
-MYSQL_DATABASE=wardrobe-miniprogram
+MYSQL_DATABASE=b2b_catalog
 MYSQL_USER=root
 MYSQL_PASSWORD=
 ```
@@ -119,7 +119,7 @@ npm run preview    # 本地预览生产构建
 ```env
 MYSQL_HOST=127.0.0.1
 MYSQL_PORT=3306
-MYSQL_DATABASE=wardrobe-miniprogram
+MYSQL_DATABASE=b2b_catalog
 MYSQL_USER=root
 MYSQL_PASSWORD=
 ```
