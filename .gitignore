@@ -1,0 +1,33 @@
+# Nuxt
+.nuxt
+.output
+.data
+.nitro
+.cache
+dist
+
+# Dependencies
+node_modules
+.npm-cache
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.crawler.example
+
+# Logs
+*.log
+
+# Temporary local Git metadata used by Codex when .git is unavailable
+.git-codex
+
+# Local crawler preview data
+public/catalog/*.json
+
+# Editors and operating systems
+.idea
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

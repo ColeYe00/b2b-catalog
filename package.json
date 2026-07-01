@@ -1,0 +1,32 @@
+{
+  "name": "b2b-catalog",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck && npm run typecheck:crawler",
+    "typecheck:crawler": "tsc --noEmit -p scripts/tsconfig.json",
+    "crawl:women-bags": "node --env-file-if-exists=.env.mysql --env-file-if-exists=.env.crawler --experimental-strip-types scripts/crawl-women-bags.ts"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "mysql2": "^3.14.5",
+    "mysql2": "^3.22.5",
+    "nuxt": "^3.21.8",
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@types/node": "^26.0.1",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.0",
+    "vue-tsc": "^3.0.0"
+  }
+}
