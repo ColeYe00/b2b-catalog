@@ -1,8 +1,11 @@
 <script setup lang="ts">
-const { products, categories, loadProducts } = useCatalog()
+const { products, categories, loadCategories, loadProducts } = useCatalog()
 const featuredProducts = computed(() => products.value.slice(0, 4))
 
-onMounted(loadProducts)
+onMounted(() => {
+  loadCategories()
+  loadProducts({ pageSize: 12 })
+})
 
 useSeoMeta({
   title: 'Atelier Gallery — Luxury Women Bags Display Catalog',

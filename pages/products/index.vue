@@ -1,7 +1,17 @@
 <script setup lang="ts">
 const route = useRoute()
 const router = useRouter()
-const { products, categories, loadProducts } = useCatalog()
+const {
+  products,
+  categories,
+  total,
+  totalPages,
+  currentPage,
+  loading,
+  error,
+  loadCategories,
+  loadProducts,
+} = useCatalog()
 
 const search = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const selectedCategory = computed(() =>
@@ -11,42 +21,52 @@ const sort = ref('newest')
 const mobileFiltersOpen = ref(false)
 const showBackToTop = ref(false)
 
-const filteredProducts = computed(() => {
-  const term = search.value.trim().toLowerCase()
-  const result = products.value.filter(product => {
-    const matchesCategory = !selectedCategory.value
-      || product.category === selectedCategory.value
-    const matchesSearch = !term
-      || product.name_en.toLowerCase().includes(term)
-      || product.name_cn?.toLowerCase().includes(term)
-
-    return matchesCategory && matchesSearch
-  })
-
-  return [...result].sort((a, b) => {
-    if (sort.value === 'name') return a.name_en.localeCompare(b.name_en)
-    return Date.parse(b.created_at) - Date.parse(a.created_at)
-  })
-})
+const page = computed(() => Math.max(1, Number(route.query.page) || 1))
 
 const setCategory = (category: string) => {
   router.push({
     query: {
       ...route.query,
       category: category || undefined,
+      page: undefined,
     },
   })
   mobileFiltersOpen.value = false
 }
 
+let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, value => {
-  router.replace({
-    query: {
-      ...route.query,
-      q: value || undefined,
-    },
-  })
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    router.replace({
+      query: { ...route.query, q: value || undefined, page: undefined },
+    })
+  }, 300)
 })
+
+watch(sort, () => {
+  router.replace({ query: { ...route.query, sort: sort.value, page: undefined } })
+})
+
+const reloadProducts = () =>
+  loadProducts({
+    page: page.value,
+    pageSize: 24,
+    category: selectedCategory.value,
+    q: typeof route.query.q === 'string' ? route.query.q : '',
+    sort: route.query.sort === 'name' ? 'name' : 'newest',
+  })
+
+watch(
+  [selectedCategory, () => route.query.q, () => route.query.sort, page],
+  reloadProducts,
+  { immediate: true },
+)
+
+const setPage = (value: number) => {
+  router.push({ query: { ...route.query, page: value > 1 ? value : undefined } })
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 const scrollToTop = () => {
   window.scrollTo({
@@ -60,7 +80,7 @@ const updateBackToTop = () => {
 }
 
 onMounted(() => {
-  loadProducts()
+  loadCategories()
   updateBackToTop()
   window.addEventListener('scroll', updateBackToTop, { passive: true })
 })
@@ -137,7 +157,7 @@ useSeoMeta({
                 @click="setCategory('')"
               >
                 All brands
-                <span class="text-[10px]">{{ products.length }}</span>
+                <span class="text-[10px]">{{ total }}</span>
               </button>
               <button
                 v-for="category in categories"
@@ -162,12 +182,40 @@ useSeoMeta({
 
         <section>
           <div class="mb-6 flex items-center justify-between text-xs text-stone-500">
-            <p><strong class="font-semibold text-ink">{{ filteredProducts.length }}</strong> products</p>
+            <p><strong class="font-semibold text-ink">{{ total }}</strong> products</p>
             <p v-if="selectedCategory">Filtered collection</p>
           </div>
-          <div v-if="filteredProducts.length" class="grid grid-cols-2 gap-x-4 gap-y-10 xl:grid-cols-3 xl:gap-x-6">
-            <ProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
+          <div v-if="loading" class="grid min-h-80 place-items-center text-sm text-stone-500">
+            Loading products…
           </div>
+          <div v-else-if="error" class="grid min-h-80 place-items-center border border-dashed border-red-200 bg-red-50/50 text-center">
+            <div>
+              <p class="font-medium text-red-800">{{ error }}</p>
+              <button class="mt-4 border border-red-300 px-5 py-3 text-xs text-red-800" @click="reloadProducts">
+                Retry
+              </button>
+            </div>
+          </div>
+          <div v-else-if="products.length" class="grid grid-cols-2 gap-x-4 gap-y-10 xl:grid-cols-3 xl:gap-x-6">
+            <ProductCard v-for="product in products" :key="product.id" :product="product" />
+          </div>
+          <nav v-if="totalPages > 1" class="mt-12 flex items-center justify-center gap-4" aria-label="Catalog pagination">
+            <button
+              class="border border-black/15 px-5 py-3 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+              :disabled="currentPage <= 1"
+              @click="setPage(currentPage - 1)"
+            >
+              Previous
+            </button>
+            <span class="text-xs text-stone-500">{{ currentPage }} / {{ totalPages }}</span>
+            <button
+              class="border border-black/15 px-5 py-3 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+              :disabled="currentPage >= totalPages"
+              @click="setPage(currentPage + 1)"
+            >
+              Next
+            </button>
+          </nav>
           <div v-else class="grid min-h-80 place-items-center border border-dashed border-black/20 text-center">
             <div>
               <AppIcon name="search" class="mx-auto h-8 w-8 text-stone-400" />

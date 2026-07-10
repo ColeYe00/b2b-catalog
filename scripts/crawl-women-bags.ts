@@ -1,6 +1,14 @@
 import { createHash } from 'node:crypto'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { createPool, type Pool } from 'mysql2/promise'
+import {
+  LOCAL_CATALOG_DIR,
+  LOCAL_CATEGORIES_FILE,
+  LOCAL_PRODUCTS_FILE,
+  type LocalCategoryRow,
+  type LocalProductRow,
+  writeStaticCatalog,
+} from './static-catalog.ts'
 
 const SOURCE_ENDPOINT =
   'https://www.wsxcme.com/album/personal/all?isFilter=true'
@@ -76,21 +84,6 @@ interface ProductRow {
   images: string[]
   created_at: string
 }
-
-interface LocalProductRow extends ProductRow {
-  id: string
-}
-
-interface LocalCategoryRow {
-  slug: string
-  nameEn: string
-  nameCn: string
-  count: number
-}
-
-const LOCAL_CATALOG_DIR = 'public/catalog'
-const LOCAL_PRODUCTS_FILE = `${LOCAL_CATALOG_DIR}/women-bags-products.json`
-const LOCAL_CATEGORIES_FILE = `${LOCAL_CATALOG_DIR}/women-bags-categories.json`
 
 function requiredEnv(name: string): string {
   const value = process.env[name]?.trim()
@@ -466,9 +459,11 @@ async function main(): Promise<void> {
     `${JSON.stringify(localCategories, null, 2)}\n`,
     'utf8',
   )
+  await writeStaticCatalog(localProducts, localCategories)
 
   console.log(`本地展示数据已保存：${LOCAL_PRODUCTS_FILE}`)
   console.log(`本地分类数据已保存：${LOCAL_CATEGORIES_FILE}`)
+  console.log(`静态分页目录已保存：${LOCAL_CATALOG_DIR}/all 和 ${LOCAL_CATALOG_DIR}/by-category`)
 
   console.log(
     `\n完成：获取 ${totalFetched} 条，${dryRun ? '验证' : '写入'} ${totalSaved} 条。`,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
-const { products, categories, loadProducts } = useCatalog()
+const { products, categories, loadCategories, loadProducts, loadProduct } = useCatalog()
 const { addItem, getQuantity, hydrate: hydrateCollectionList } = useCollectionList()
 const selectedImage = ref(0)
 const addQuantity = ref(1)
@@ -10,9 +10,7 @@ const productId = computed(() => {
   const rawValue = Array.isArray(value) ? value[0] : value
   return decodeURIComponent(rawValue ?? '')
 })
-const product = computed(() =>
-  products.value.find(item => item.id === productId.value),
-)
+const product = ref<Awaited<ReturnType<typeof loadProduct>> | null>(null)
 const category = computed(() =>
   categories.value.find(item => item.slug === product.value?.category),
 )
@@ -63,9 +61,15 @@ const addToCollection = () => {
   addItem(product.value.id, normalizeAddQuantity(addQuantity.value))
 }
 
-onMounted(() => {
+onMounted(async () => {
   hydrateCollectionList()
-  loadProducts()
+  loadCategories()
+  try {
+    product.value = await loadProduct(productId.value)
+    await loadProducts({ pageSize: 4, category: product.value.category })
+  } catch {
+    product.value = null
+  }
 })
 
 useSeoMeta({

@@ -28,6 +28,16 @@ npm run build
 npm run preview
 ```
 
+For a production-style local start:
+
+```bash
+npm run build
+npm start
+```
+
+Use `GET /api/health` as the deployment health check. It returns HTTP 503 when
+the application cannot reach MySQL.
+
 ## MySQL
 
 Copy `.env.mysql.example` to `.env.mysql` and add the server-only MySQL connection:
@@ -42,18 +52,46 @@ MYSQL_PASSWORD=
 
 Never expose the MySQL password in public runtime config or commit `.env.mysql`.
 
+Start your local MySQL service, then initialize the database and tables:
+
+```bash
+npm run mysql:init
+```
+
+The command is idempotent: it can be run again without deleting existing data.
+
+Create a compressed local backup containing table structures and data:
+
+```bash
+npm run mysql:backup
+```
+
+Backups are written to `backups/` and are excluded from Git. Copy important
+backups to a separate disk or private object storage.
+
+Restore a backup only after confirming the target database:
+
+```bash
+npm run mysql:restore -- backups/<backup-file>.json.gz --confirm
+```
+
+Restore replaces the data in the backed-up tables.
+
 ## Luxury women bags crawler
 
 The crawler reads only luxury women bag related categories from the captured source API and upserts products by their source `goods_id`.
 
 1. Copy `.env.crawler.example` to `.env.crawler`.
 2. Add a current authorized source API token.
-3. Configure `.env.mysql`.
-4. Run:
+3. Run:
 
 ```bash
 npm run crawl:women-bags
 ```
+
+Set `CRAWLER_DRY_RUN=true` to skip MySQL writes. The crawler always writes the
+static catalog JSON under `public/catalog/`, including category pages, product
+detail JSON, and the search index.
 
 To verify one page per category without writing to MySQL:
 
@@ -62,6 +100,19 @@ $env:CRAWLER_DRY_RUN="true"
 $env:CRAWLER_MAX_PAGES="1"
 npm run crawl:women-bags
 ```
+
+## Translate catalog text
+
+Copy `.env.translate.example` to `.env.translate`, add `BIGMODEL_API_KEY`, then run:
+
+```bash
+npm run translate:catalog
+```
+
+The translation script uses BigModel's `glm-4.7-flash` chat API, batches the
+crawled Chinese product text into English, caches completed translations in
+`.cache/catalog-translations.json`, updates the catalog JSON, and rebuilds the
+static page/detail/search files.
 
 ## Structure
 

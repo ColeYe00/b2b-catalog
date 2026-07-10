@@ -22,10 +22,12 @@ export default defineNuxtConfig({
     mysqlDatabase: process.env.MYSQL_DATABASE ?? '',
     mysqlUser: process.env.MYSQL_USER ?? '',
     mysqlPassword: process.env.MYSQL_PASSWORD ?? '',
+    mysqlSlowQueryMs: Number(process.env.MYSQL_SLOW_QUERY_MS ?? 200),
     public: {},
   },
 
   app: {
+    baseURL: process.env.NUXT_APP_BASE_URL ?? '/',
     head: {
       title: 'B2B Catalog',
       meta: [

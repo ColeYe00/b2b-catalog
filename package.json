@@ -3,20 +3,24 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
+    "build": "node --env-file-if-exists=.env.mysql node_modules/nuxt/bin/nuxt.mjs build",
+    "dev": "node --env-file-if-exists=.env.mysql node_modules/nuxt/bin/nuxt.mjs dev",
+    "generate": "node --env-file-if-exists=.env.mysql node_modules/nuxt/bin/nuxt.mjs generate",
+    "preview": "node --env-file-if-exists=.env.mysql node_modules/nuxt/bin/nuxt.mjs preview",
+    "start": "node --env-file-if-exists=.env.mysql .output/server/index.mjs",
     "postinstall": "nuxt prepare",
     "typecheck": "nuxt typecheck && npm run typecheck:crawler",
     "typecheck:crawler": "tsc --noEmit -p scripts/tsconfig.json",
-    "crawl:women-bags": "node --env-file-if-exists=.env.mysql --env-file-if-exists=.env.crawler --experimental-strip-types scripts/crawl-women-bags.ts"
+    "mysql:init": "node --env-file-if-exists=.env.mysql --experimental-strip-types scripts/init-mysql.ts",
+    "mysql:backup": "node --env-file-if-exists=.env.mysql --experimental-strip-types scripts/backup-mysql.ts",
+    "mysql:restore": "node --env-file-if-exists=.env.mysql --experimental-strip-types scripts/restore-mysql.ts",
+    "crawl:women-bags": "node --env-file-if-exists=.env.mysql --env-file-if-exists=.env.crawler --experimental-strip-types scripts/crawl-women-bags.ts",
+    "translate:catalog": "node --env-file-if-exists=.env.translate --experimental-strip-types scripts/translate-catalog.ts"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "mysql2": "^3.14.5",
     "mysql2": "^3.22.5",
     "nuxt": "^3.21.8",
     "vue": "^3.5.0",

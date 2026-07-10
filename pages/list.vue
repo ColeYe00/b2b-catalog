@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { products, categories, loadProducts } = useCatalog()
+const { products, categories, loadCategories, loadProduct } = useCatalog()
 const {
   items,
   savedAt,
@@ -42,9 +42,13 @@ const formattedSavedAt = computed(() => {
   }).format(new Date(savedAt.value))
 })
 
-onMounted(() => {
+onMounted(async () => {
   hydrate()
-  loadProducts()
+  loadCategories()
+  const loaded = await Promise.all(
+    items.value.map(item => loadProduct(item.productId).catch(() => null)),
+  )
+  products.value = loaded.filter((product): product is NonNullable<typeof product> => Boolean(product))
 })
 
 useSeoMeta({

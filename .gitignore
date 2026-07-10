@@ -8,6 +8,7 @@ dist
 
 # Dependencies
 node_modules
+backups/
 .npm-cache
 
 # Environment
@@ -16,6 +17,7 @@ node_modules
 !.env.example
 !.env.crawler.example
 !.env.mysql.example
+!.env.translate.example
 
 # Logs
 *.log
@@ -23,8 +25,8 @@ node_modules
 # Temporary local Git metadata used by Codex when .git is unavailable
 .git-codex
 
-# Local crawler preview data
-public/catalog/*.json
+# Legacy full crawler exports; split static catalog files are deployed.
+public/catalog/women-bags-*.json
 
 # Editors and operating systems
 .idea

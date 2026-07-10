@@ -26,3 +26,36 @@ export function useMysqlPool(): mysql.Pool {
 
   return pool
 }
+
+export async function closeMysqlPool(): Promise<void> {
+  if (!pool) return
+
+  const activePool = pool
+  pool = undefined
+  await activePool.end()
+}
+
+export async function queryMysql<T extends mysql.QueryResult>(
+  operation: string,
+  sql: string,
+  values: unknown[] = [],
+): Promise<[T, mysql.FieldPacket[]]> {
+  const startedAt = performance.now()
+
+  try {
+    return await useMysqlPool().query<T>(sql, values)
+  } finally {
+    const durationMs = Math.round((performance.now() - startedAt) * 100) / 100
+    const thresholdMs = Number(useRuntimeConfig().mysqlSlowQueryMs) || 200
+
+    if (durationMs >= thresholdMs) {
+      console.warn(JSON.stringify({
+        type: 'mysql_slow_query',
+        operation,
+        durationMs,
+        thresholdMs,
+        timestamp: new Date().toISOString(),
+      }))
+    }
+  }
+}

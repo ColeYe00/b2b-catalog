@@ -33,3 +33,11 @@ export interface CatalogCategory {
   nameCn: string
   count: number
 }
+
+export interface CatalogPage {
+  items: CatalogProduct[]
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+}
