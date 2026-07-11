@@ -37,8 +37,8 @@ onMounted(hydrate)
               {{ totalCount }}
             </span>
           </NuxtLink>
-          <a href="/#display-guide" class="hover:text-brass">Guide</a>
-          <a href="/#notice" class="hover:text-brass">Notice</a>
+          <NuxtLink to="/guide" class="hover:text-brass">Guide</NuxtLink>
+          <NuxtLink to="/notice" class="hover:text-brass">Notice</NuxtLink>
         </nav>
 
         <div class="hidden items-center gap-3 md:flex">
@@ -61,8 +61,8 @@ onMounted(hydrate)
           <NuxtLink to="/">Home</NuxtLink>
           <NuxtLink to="/products">Catalog</NuxtLink>
           <NuxtLink to="/list">Collection<span v-if="totalCount"> · {{ totalCount }}</span></NuxtLink>
-          <a href="/#display-guide">Guide</a>
-          <a href="/#notice">Notice</a>
+          <NuxtLink to="/guide">Guide</NuxtLink>
+          <NuxtLink to="/notice">Notice</NuxtLink>
         </nav>
       </div>
     </header>
