@@ -5,6 +5,8 @@ import {
   LOCAL_CATALOG_DIR,
   LOCAL_CATEGORIES_FILE,
   LOCAL_PRODUCTS_FILE,
+  categoriesWithProductCounts,
+  hardDedupeProducts,
   type LocalCategoryRow,
   type LocalProductRow,
   writeStaticCatalog,
@@ -447,26 +449,28 @@ async function main(): Promise<void> {
     nameCn: category.nameCn,
     count: localCategoryCounts.get(category.slug) ?? 0,
   }))
+  const dedupedProducts = hardDedupeProducts(localProducts)
+  const dedupedCategories = categoriesWithProductCounts(localCategories, dedupedProducts)
 
   await mkdir(LOCAL_CATALOG_DIR, { recursive: true })
   await writeFile(
     LOCAL_PRODUCTS_FILE,
-    `${JSON.stringify(localProducts, null, 2)}\n`,
+    `${JSON.stringify(dedupedProducts, null, 2)}\n`,
     'utf8',
   )
   await writeFile(
     LOCAL_CATEGORIES_FILE,
-    `${JSON.stringify(localCategories, null, 2)}\n`,
+    `${JSON.stringify(dedupedCategories, null, 2)}\n`,
     'utf8',
   )
-  await writeStaticCatalog(localProducts, localCategories)
+  await writeStaticCatalog(dedupedProducts, dedupedCategories)
 
   console.log(`本地展示数据已保存：${LOCAL_PRODUCTS_FILE}`)
   console.log(`本地分类数据已保存：${LOCAL_CATEGORIES_FILE}`)
   console.log(`静态分页目录已保存：${LOCAL_CATALOG_DIR}/all 和 ${LOCAL_CATALOG_DIR}/by-category`)
 
   console.log(
-    `\n完成：获取 ${totalFetched} 条，${dryRun ? '验证' : '写入'} ${totalSaved} 条。`,
+    `\n完成：获取 ${totalFetched} 条，${dryRun ? '验证' : '写入'} ${totalSaved} 条，硬去重后 ${dedupedProducts.length} 条。`,
   )
 
   await mysql?.end()

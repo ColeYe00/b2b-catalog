@@ -29,6 +29,51 @@ export const LOCAL_CATEGORIES_FILE = `${LOCAL_CATALOG_DIR}/women-bags-categories
 
 const STATIC_PAGE_SIZE = 24
 
+export function productDedupeKey(product: LocalProductRow): string {
+  const sourceId = product.specs.sourceId
+
+  if (typeof sourceId === 'string' && sourceId.trim()) {
+    return `source:${sourceId.trim()}`
+  }
+
+  if (product.sku.trim()) {
+    return `sku:${product.sku.trim()}`
+  }
+
+  return `id:${product.id}`
+}
+
+export function hardDedupeProducts(products: LocalProductRow[]): LocalProductRow[] {
+  const seen = new Set<string>()
+
+  return products.filter(product => {
+    const key = productDedupeKey(product)
+
+    if (seen.has(key)) {
+      return false
+    }
+
+    seen.add(key)
+    return true
+  })
+}
+
+export function categoriesWithProductCounts(
+  categories: LocalCategoryRow[],
+  products: LocalProductRow[],
+): LocalCategoryRow[] {
+  const counts = new Map<string, number>()
+
+  for (const product of products) {
+    counts.set(product.category, (counts.get(product.category) ?? 0) + 1)
+  }
+
+  return categories.map(category => ({
+    ...category,
+    count: counts.get(category.slug) ?? 0,
+  }))
+}
+
 function sortProducts(
   products: LocalProductRow[],
   sort: 'newest' | 'name',
@@ -74,16 +119,19 @@ export async function writeStaticCatalog(
   products: LocalProductRow[],
   categories: LocalCategoryRow[],
 ): Promise<void> {
+  const catalogProducts = hardDedupeProducts(products)
+  const catalogCategories = categoriesWithProductCounts(categories, catalogProducts)
+
   await rm(`${LOCAL_CATALOG_DIR}/all`, { recursive: true, force: true, maxRetries: 3 })
   await rm(`${LOCAL_CATALOG_DIR}/by-category`, { recursive: true, force: true, maxRetries: 3 })
   await rm(`${LOCAL_CATALOG_DIR}/products`, { recursive: true, force: true, maxRetries: 3 })
 
   await mkdir(`${LOCAL_CATALOG_DIR}/products`, { recursive: true })
-  await writeJson(`${LOCAL_CATALOG_DIR}/categories.json`, categories)
-  await writeProductPages(`${LOCAL_CATALOG_DIR}/all`, products, products.length)
+  await writeJson(`${LOCAL_CATALOG_DIR}/categories.json`, catalogCategories)
+  await writeProductPages(`${LOCAL_CATALOG_DIR}/all`, catalogProducts, catalogProducts.length)
 
-  for (const category of categories) {
-    const categoryProducts = products.filter(product => product.category === category.slug)
+  for (const category of catalogCategories) {
+    const categoryProducts = catalogProducts.filter(product => product.category === category.slug)
     await writeProductPages(
       `${LOCAL_CATALOG_DIR}/by-category/${category.slug}`,
       categoryProducts,
@@ -91,13 +139,13 @@ export async function writeStaticCatalog(
     )
   }
 
-  for (const product of products) {
+  for (const product of catalogProducts) {
     await writeJson(`${LOCAL_CATALOG_DIR}/products/${product.id}.json`, product)
   }
 
   await writeJson(
     `${LOCAL_CATALOG_DIR}/search-index.json`,
-    products.map(product => {
+    catalogProducts.map(product => {
       const modelNumber = product.specs.modelNumber
 
       return {

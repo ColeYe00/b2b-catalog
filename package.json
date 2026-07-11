@@ -15,7 +15,8 @@
     "mysql:backup": "node --env-file-if-exists=.env.mysql --experimental-strip-types scripts/backup-mysql.ts",
     "mysql:restore": "node --env-file-if-exists=.env.mysql --experimental-strip-types scripts/restore-mysql.ts",
     "crawl:women-bags": "node --env-file-if-exists=.env.mysql --env-file-if-exists=.env.crawler --experimental-strip-types scripts/crawl-women-bags.ts",
-    "translate:catalog": "node --env-file-if-exists=.env.translate --experimental-strip-types scripts/translate-catalog.ts"
+    "translate:catalog": "node --env-file-if-exists=.env.translate --experimental-strip-types scripts/translate-catalog.ts",
+    "clean:catalog": "node --experimental-strip-types scripts/clean-catalog-english.ts"
   },
   "engines": {
     "node": ">=20.0.0"
